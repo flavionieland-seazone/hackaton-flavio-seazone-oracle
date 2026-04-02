@@ -8,10 +8,12 @@ import { metabaseSearchCards, metabaseRunCard, metabaseExploreSchema, metabaseRu
 import { nektQuery } from '@/lib/nekt'
 import type { UIMessage } from 'ai'
 
-const openrouter = createOpenAI({
+const _openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY!,
 })
+// Use .chat() explicitly — OpenRouter only supports /v1/chat/completions, not the Responses API
+const openrouterModel = _openrouter.chat(CHAT_MODEL)
 
 export async function POST(request: Request) {
   const body = await request.json()
@@ -66,8 +68,10 @@ export async function POST(request: Request) {
   }
 
   // Streaming com Claude Sonnet via OpenRouter + tools
-  const result = streamText({
-    model: openrouter(CHAT_MODEL),
+  let result
+  try {
+    result = streamText({
+    model: openrouterModel,
     system: systemPrompt,
     messages: coreMessages,
     tools: {
@@ -115,6 +119,14 @@ export async function POST(request: Request) {
       }
     },
   })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    const isCredits = /credit|quota|billing|insufficient|limit|payment|402/i.test(msg)
+    const userMsg = isCredits
+      ? 'O Oracle está temporariamente indisponível: créditos de API esgotados. Por favor, contate o time de tecnologia.'
+      : 'Erro interno ao processar sua pergunta. Por favor, tente novamente.'
+    return Response.json({ error: userMsg, details: msg }, { status: isCredits ? 402 : 500 })
+  }
 
   // Inclui sources e conversation_id no header para o cliente
   const response = result.toUIMessageStreamResponse()

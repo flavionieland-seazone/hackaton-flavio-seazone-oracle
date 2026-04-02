@@ -64,7 +64,21 @@ async function ensureSession(): Promise<void> {
 
 async function callTool(name: string, args: Record<string, unknown>): Promise<string> {
   await ensureSession()
-  const result = await nektFetch('tools/call', { name, arguments: args })
+  let result: McpResult | null
+  try {
+    result = await nektFetch('tools/call', { name, arguments: args })
+  } catch {
+    // Session may be stale — reset and retry once
+    sessionId = null
+    await ensureSession()
+    result = await nektFetch('tools/call', { name, arguments: args })
+  }
+  if (!result) {
+    // Null result may also indicate stale session; retry once
+    sessionId = null
+    await ensureSession()
+    result = await nektFetch('tools/call', { name, arguments: args })
+  }
   if (!result) return 'Sem resultado da Nekt.'
   const texts = (result.content ?? [])
     .filter((c) => c.type === 'text' && c.text)
