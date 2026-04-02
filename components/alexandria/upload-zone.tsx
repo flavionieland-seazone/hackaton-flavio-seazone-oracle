@@ -31,7 +31,7 @@ export function UploadZone({ onFiles, disabled }: Props) {
   }
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div
         onClick={() => !disabled && inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
@@ -41,21 +41,24 @@ export function UploadZone({ onFiles, disabled }: Props) {
           setDragging(false)
           handleFiles(e.dataTransfer.files)
         }}
-        className={[
-          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
-          disabled ? 'opacity-50 cursor-not-allowed' : '',
-          dragging
-            ? 'border-[#003366] bg-[#003366]/5'
-            : 'border-gray-300 hover:border-[#003366]/50 hover:bg-gray-50',
-        ].join(' ')}
+        style={{
+          border: `2px dashed ${dragging ? 'rgba(220,160,0,0.7)' : 'rgba(200,150,0,0.3)'}`,
+          borderRadius: '0.75rem',
+          padding: '2rem',
+          textAlign: 'center',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s',
+          background: dragging ? 'rgba(120,80,0,0.15)' : 'rgba(40,25,0,0.3)',
+          opacity: disabled ? 0.5 : 1,
+        }}
       >
-        <div className="flex flex-col items-center gap-2 text-gray-500">
-          <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+          <svg style={{ width: '2.5rem', height: '2.5rem', color: 'rgba(200,150,0,0.5)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
           </svg>
-          <p className="font-medium text-gray-700">Arraste arquivos ou clique para selecionar</p>
-          <p className="text-sm">PDF, DOCX, TXT, MD, PNG, JPG</p>
+          <p style={{ fontWeight: 500, color: 'rgba(245,220,160,0.8)', fontSize: '0.875rem' }}>Arraste arquivos ou clique para selecionar</p>
+          <p style={{ fontSize: '0.75rem', color: 'rgba(200,150,80,0.55)' }}>PDF, DOCX, TXT, MD, PNG, JPG</p>
         </div>
       </div>
 
@@ -64,19 +67,32 @@ export function UploadZone({ onFiles, disabled }: Props) {
         type="file"
         multiple
         accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp"
-        className="hidden"
+        style={{ display: 'none' }}
         onChange={(e) => handleFiles(e.target.files)}
       />
 
       {staged.length > 0 && (
-        <ul className="space-y-1.5">
+        <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
           {staged.map((f, i) => (
-            <li key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm">
-              <span className="truncate text-gray-700 max-w-[80%]">{f.name}</span>
+            <li key={i} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'rgba(40,25,0,0.5)',
+              border: '1px solid rgba(200,150,0,0.2)',
+              borderRadius: '0.5rem',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.875rem',
+            }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'rgba(245,220,160,0.8)', maxWidth: '80%' }}>{f.name}</span>
               <button
                 onClick={() => removeFile(i)}
                 disabled={disabled}
-                className="text-gray-400 hover:text-red-500 transition-colors ml-2 flex-shrink-0"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'rgba(200,150,0,0.45)', fontSize: '0.875rem',
+                  marginLeft: '0.5rem', flexShrink: 0, transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(220,80,80,0.8)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(200,150,0,0.45)'}
               >
                 ✕
               </button>

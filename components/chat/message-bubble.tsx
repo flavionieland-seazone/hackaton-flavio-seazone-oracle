@@ -72,9 +72,9 @@ function ToolProgressIndicator({ parts }: { parts: Part[] }) {
   const label = TOOL_PROGRESS_LABELS[toolName] ?? 'Processando...'
 
   return (
-    <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'rgba(150,180,255,0.7)', marginTop: '0.5rem' }}>
       <svg
-        className="w-3.5 h-3.5 animate-spin text-[#003366]"
+        style={{ width: '0.875rem', height: '0.875rem', animation: 'spin 1s linear infinite', color: 'rgba(150,180,255,0.9)', flexShrink: 0 }}
         fill="none"
         viewBox="0 0 24 24"
       >
@@ -113,7 +113,14 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-5`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold mr-2 mt-1 flex-shrink-0">
+        <div style={{
+          width: '2rem', height: '2rem', borderRadius: '50%',
+          background: 'linear-gradient(135deg, #2a4a8a, #5a2a9a)',
+          border: '1px solid rgba(150,180,255,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'white', fontSize: '0.7rem', fontWeight: 700,
+          marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0
+        }}>
           O
         </div>
       )}
@@ -121,17 +128,33 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
         {/* Message bubble — only render if there's content */}
         {(isUser || hasContent) && (
           <div
-            className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-              isUser
-                ? 'bg-[#003366] text-white rounded-br-sm'
-                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm'
-            }`}
+            style={isUser ? {
+              background: 'linear-gradient(135deg, #1a3a7a, #3a1a6a)',
+              border: '1px solid rgba(150,180,255,0.2)',
+              color: 'rgba(220,235,255,0.95)',
+              borderRadius: '1rem',
+              borderBottomRightRadius: '0.25rem',
+              padding: '0.75rem 1rem',
+              fontSize: '0.875rem',
+              lineHeight: '1.6'
+            } : {
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(150,180,255,0.15)',
+              backdropFilter: 'blur(8px)',
+              color: 'rgba(220,235,255,0.95)',
+              borderRadius: '1rem',
+              borderBottomLeftRadius: '0.25rem',
+              padding: '0.75rem 1rem',
+              fontSize: '0.875rem',
+              lineHeight: '1.6'
+            }}
           >
             {isUser ? (
               <p className="whitespace-pre-wrap">{content}</p>
             ) : (
               <div
-                className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:my-1 prose-li:my-0"
+                className="prose prose-sm max-w-none prose-invert prose-p:my-1 prose-li:my-0"
+                style={{ color: 'rgba(220,235,255,0.95)' }}
                 dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }}
               />
             )}
@@ -143,7 +166,7 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
 
         {/* Attribution + reasoning toggle (shown after tools complete) */}
         {!isUser && hasMetabase && (
-          <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400">
+          <div style={{ marginTop: '0.375rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'rgba(120,160,255,0.55)' }}>
             <em>
               {metabaseParts.some((p) => p.type === 'tool-nekt_query') ? 'Fonte: Nekt' : 'Fonte: Metabase'}
               {uniqueTables.length > 0 &&
@@ -151,11 +174,13 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
             </em>
             <button
               onClick={() => setShowReasoning((v) => !v)}
-              className="flex items-center gap-0.5 hover:text-gray-600 transition-colors"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.125rem', background: 'none', border: 'none', color: 'rgba(120,160,255,0.55)', cursor: 'pointer', padding: 0, fontSize: '0.75rem', transition: 'color 0.15s' }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(180,210,255,0.9)'}
+              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(120,160,255,0.55)'}
               title={showReasoning ? 'Ocultar raciocínio' : 'Ver raciocínio'}
             >
               <svg
-                className={`w-3.5 h-3.5 transition-transform duration-150 ${showReasoning ? 'rotate-180' : ''}`}
+                style={{ width: '0.875rem', height: '0.875rem', transition: 'transform 0.15s', transform: showReasoning ? 'rotate(180deg)' : 'rotate(0deg)' }}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -169,43 +194,43 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
 
         {/* Reasoning panel */}
         {!isUser && showReasoning && (
-          <div className="mt-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
+          <div style={{ marginTop: '0.5rem', background: 'rgba(20,30,60,0.6)', border: '1px solid rgba(100,140,255,0.2)', borderRadius: '0.75rem', padding: '0.75rem', fontSize: '0.75rem', backdropFilter: 'blur(8px)' }}>
             {metabaseParts.map((p, i) => {
               const toolName = p.type.slice(5)
               const input = p.input as Record<string, unknown>
               return (
                 <div
                   key={(p.toolCallId as string) ?? i}
-                  className={i > 0 ? 'mt-3 pt-3 border-t border-gray-200' : ''}
+                  style={i > 0 ? { marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(100,140,255,0.15)' } : {}}
                 >
                   {toolName === 'metabase_run_sql' && (
                     <>
-                      <div className="text-gray-500 font-medium mb-1">SQL executado:</div>
-                      <pre className="bg-white border border-gray-200 rounded p-2 overflow-x-auto text-gray-700 whitespace-pre-wrap break-words font-mono text-[11px]">
+                      <div style={{ color: 'rgba(150,180,255,0.7)', fontWeight: 500, marginBottom: '0.25rem' }}>SQL executado:</div>
+                      <pre style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(100,140,255,0.15)', borderRadius: '0.375rem', padding: '0.5rem', overflowX: 'auto', color: 'rgba(200,220,255,0.85)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', fontSize: '0.6875rem' }}>
                         {String(input.sql ?? '').trim()}
                       </pre>
                     </>
                   )}
                   {toolName === 'metabase_run_card' && (
-                    <div className="text-gray-500">
-                      Relatório Metabase <strong>#{String(input.card_id ?? '')}</strong>
+                    <div style={{ color: 'rgba(150,180,255,0.7)' }}>
+                      Relatório Metabase <strong style={{ color: 'rgba(200,220,255,0.9)' }}>#{String(input.card_id ?? '')}</strong>
                     </div>
                   )}
                   {toolName === 'metabase_search_cards' && (
-                    <div className="text-gray-500">
-                      Busca no Metabase: <em>&ldquo;{String(input.query ?? '')}&rdquo;</em>
+                    <div style={{ color: 'rgba(150,180,255,0.7)' }}>
+                      Busca no Metabase: <em style={{ color: 'rgba(200,220,255,0.85)' }}>&ldquo;{String(input.query ?? '')}&rdquo;</em>
                     </div>
                   )}
                   {toolName === 'metabase_explore_schema' && (
-                    <div className="text-gray-500">
+                    <div style={{ color: 'rgba(150,180,255,0.7)' }}>
                       Schema explorado:{' '}
-                      <strong>{String(input.table_name ?? input.schema_name ?? 'public')}</strong>
+                      <strong style={{ color: 'rgba(200,220,255,0.9)' }}>{String(input.table_name ?? input.schema_name ?? 'public')}</strong>
                     </div>
                   )}
                   {toolName === 'nekt_query' && (
-                    <div className="text-gray-500">
+                    <div style={{ color: 'rgba(150,180,255,0.7)' }}>
                       Consulta Nekt:{' '}
-                      <em>&ldquo;{String(input.question ?? '')}&rdquo;</em>
+                      <em style={{ color: 'rgba(200,220,255,0.85)' }}>&ldquo;{String(input.question ?? '')}&rdquo;</em>
                     </div>
                   )}
                 </div>
@@ -242,17 +267,17 @@ function markdownToHtml(md: string): string {
   return md
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code class="bg-gray-100 px-1 rounded text-xs">$1</code>')
-    .replace(/^### (.+)$/gm, '<h3 class="font-semibold text-sm mt-3 mb-1">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="font-semibold mt-3 mb-1">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="font-bold mt-3 mb-1">$1</h1>')
-    .replace(/^\- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
-    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$2</li>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(100,140,255,0.15);padding:0 0.25rem;border-radius:0.25rem;font-size:0.75rem;color:rgba(200,220,255,0.95)">$1</code>')
+    .replace(/^### (.+)$/gm, '<h3 style="font-weight:600;font-size:0.875rem;margin-top:0.75rem;margin-bottom:0.25rem;color:rgba(200,220,255,0.95)">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 style="font-weight:600;margin-top:0.75rem;margin-bottom:0.25rem;color:rgba(200,220,255,0.95)">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 style="font-weight:700;margin-top:0.75rem;margin-bottom:0.25rem;color:rgba(220,235,255,1)">$1</h1>')
+    .replace(/^\- (.+)$/gm, '<li style="margin-left:1rem;list-style:disc;list-style-position:inside">$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li style="margin-left:1rem;list-style:decimal;list-style-position:inside">$2</li>')
     .replace(/\[(.+?)\]\((.+?)\)/g, (_, text, url) =>
       url.startsWith('http://') || url.startsWith('https://')
-        ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-[#003366] underline">${text}</a>`
+        ? `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:rgba(150,180,255,0.9);text-decoration:underline">${text}</a>`
         : text
     )
-    .replace(/\n{2,}/g, '</p><p class="mt-2">')
+    .replace(/\n{2,}/g, '</p><p style="margin-top:0.5rem">')
     .replace(/\n/g, '<br/>')
 }
