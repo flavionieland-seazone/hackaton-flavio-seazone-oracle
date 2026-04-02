@@ -1,7 +1,5 @@
 'use client'
 
-import Image from 'next/image'
-
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Perguntas', href: '/chat' },
@@ -23,13 +21,7 @@ export function Header() {
     }}>
       {/* Logo — esquerda */}
       <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
-        <Image
-          src="/crystal-ball.png"
-          alt="Oracle"
-          width={36}
-          height={36}
-          style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(140,100,255,0.6))' }}
-        />
+        <span style={{ fontSize: '1.75rem', filter: 'drop-shadow(0 0 8px rgba(140,100,255,0.6))' }}>🔮</span>
         <div>
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white', lineHeight: 1.2, letterSpacing: '0.02em' }}>Seazone Oracle</div>
           <div style={{ fontSize: '0.6rem', color: 'rgba(160,190,255,0.55)', lineHeight: 1.2 }}>Assistente de conhecimento interno</div>

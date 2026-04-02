@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import type { SourceCitation } from '@/types'
 import { SourceCards } from './source-card'
 
@@ -114,14 +113,8 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-5`}>
       {!isUser && (
-        <div style={{ width: '2rem', height: '2rem', marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0 }}>
-          <Image
-            src="/crystal-ball.png"
-            alt="Oracle"
-            width={32}
-            height={32}
-            style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(140,100,255,0.5))' }}
-          />
+        <div style={{ width: '2rem', height: '2rem', marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: '1.4rem', filter: 'drop-shadow(0 0 6px rgba(140,100,255,0.5))' }}>🔮</span>
         </div>
       )}
       <div className={`max-w-[78%] ${isUser ? '' : 'flex flex-col'}`}>
@@ -248,8 +241,8 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
 export function TypingIndicator() {
   return (
     <div className="flex justify-start mb-5">
-      <div style={{ width: '2rem', height: '2rem', marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0 }}>
-        <Image src="/crystal-ball.png" alt="Oracle" width={32} height={32} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(140,100,255,0.5))' }} />
+      <div style={{ width: '2rem', height: '2rem', marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: '1.4rem', filter: 'drop-shadow(0 0 6px rgba(140,100,255,0.5))' }}>🔮</span>
       </div>
       <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
         <div className="flex gap-1 items-center h-4">

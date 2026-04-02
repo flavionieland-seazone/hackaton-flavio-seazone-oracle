@@ -125,14 +125,8 @@ export function ChatInterface({ initialQuery }: Props) {
         <div className="max-w-3xl mx-auto">
           {messages.length === 0 && (
             <div className="text-center pt-16">
-              <div style={{ margin: '0 auto 1rem', width: '4rem', height: '4rem' }}>
-                <Image
-                  src="/crystal-ball.png"
-                  alt="Oracle"
-                  width={64}
-                  height={64}
-                  style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 15px rgba(140,100,255,0.6)) drop-shadow(0 0 30px rgba(100,60,200,0.3))' }}
-                />
+              <div style={{ margin: '0 auto 1rem', fontSize: '3.5rem', filter: 'drop-shadow(0 0 15px rgba(140,100,255,0.6)) drop-shadow(0 0 30px rgba(100,60,200,0.3))' }}>
+                🔮
               </div>
               <p style={{ color: 'rgba(160,190,255,0.5)', fontSize: '0.875rem' }}>Faça sua pergunta abaixo</p>
             </div>
