@@ -1,71 +1,84 @@
 'use client'
 
+import Image from 'next/image'
+
+const NAV_LINKS = [
+  { label: 'Home', href: '/' },
+  { label: 'Perguntas', href: '/chat' },
+  { label: 'Biblioteca', href: '/alexandria' },
+]
+
 export function Header() {
   return (
     <header style={{
-      background: 'rgba(8,11,26,0.85)',
+      background: 'rgba(8,11,26,0.9)',
       backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgba(150,180,255,0.1)',
+      borderBottom: '1px solid rgba(150,180,255,0.12)',
       padding: '0.875rem 1.5rem',
-      display: 'flex',
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr',
       alignItems: 'center',
-      justifyContent: 'space-between',
       position: 'relative',
-      zIndex: 20
+      zIndex: 20,
     }}>
-      <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', opacity: 1 }}>
-        <div style={{
-          width: '2rem', height: '2rem', borderRadius: '50%',
-          background: 'linear-gradient(135deg, #2a4a8a, #5a2a9a)',
-          border: '1px solid rgba(150,180,255,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontWeight: 700, color: 'white', fontSize: '0.9rem',
-          flexShrink: 0,
-          boxShadow: '0 0 10px rgba(100,140,255,0.3)'
-        }}>
-          O
-        </div>
+      {/* Logo — esquerda */}
+      <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
+        <Image
+          src="/crystal-ball.png"
+          alt="Oracle"
+          width={36}
+          height={36}
+          style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(140,100,255,0.6))' }}
+        />
         <div>
-          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'white', lineHeight: 1.2 }}>Seazone Oracle</div>
-          <div style={{ fontSize: '0.65rem', color: 'rgba(160,190,255,0.6)', lineHeight: 1.2 }}>Assistente de conhecimento interno</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white', lineHeight: 1.2, letterSpacing: '0.02em' }}>Seazone Oracle</div>
+          <div style={{ fontSize: '0.6rem', color: 'rgba(160,190,255,0.55)', lineHeight: 1.2 }}>Assistente de conhecimento interno</div>
         </div>
       </a>
 
+      {/* Nav — centro */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-        {[
-          { label: 'Home', href: '/' },
-          { label: 'Perguntas', href: '/chat' },
-          { label: 'Biblioteca', href: '/alexandria' },
-        ].map(({ label, href }) => (
+        {NAV_LINKS.map(({ label, href }) => (
           <a
             key={href}
             href={href}
             style={{
-              fontSize: '0.75rem',
-              color: 'rgba(180,200,255,0.6)',
-              padding: '0.375rem 0.75rem',
-              borderRadius: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: 'rgba(180,210,255,0.85)',
+              padding: '0.5rem 1.1rem',
+              borderRadius: '0.625rem',
               textDecoration: 'none',
-              transition: 'all 0.15s',
-              border: '1px solid transparent'
+              transition: 'all 0.2s',
+              border: '1px solid rgba(150,180,255,0.12)',
+              background: 'rgba(100,140,255,0.05)',
+              letterSpacing: '0.02em',
+              textShadow: '0 0 10px rgba(150,180,255,0.5), 0 0 25px rgba(100,140,255,0.3)',
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLAnchorElement
               el.style.color = 'white'
-              el.style.background = 'rgba(255,255,255,0.07)'
-              el.style.borderColor = 'rgba(150,180,255,0.2)'
+              el.style.background = 'rgba(100,140,255,0.15)'
+              el.style.borderColor = 'rgba(150,180,255,0.4)'
+              el.style.textShadow = '0 0 12px rgba(200,220,255,0.9), 0 0 30px rgba(150,180,255,0.7), 0 0 50px rgba(100,140,255,0.4)'
+              el.style.boxShadow = '0 0 12px rgba(100,140,255,0.2)'
             }}
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLAnchorElement
-              el.style.color = 'rgba(180,200,255,0.6)'
-              el.style.background = 'transparent'
-              el.style.borderColor = 'transparent'
+              el.style.color = 'rgba(180,210,255,0.85)'
+              el.style.background = 'rgba(100,140,255,0.05)'
+              el.style.borderColor = 'rgba(150,180,255,0.12)'
+              el.style.textShadow = '0 0 10px rgba(150,180,255,0.5), 0 0 25px rgba(100,140,255,0.3)'
+              el.style.boxShadow = 'none'
             }}
           >
             {label}
           </a>
         ))}
       </nav>
+
+      {/* Espaço direita — balança o grid */}
+      <div />
     </header>
   )
 }

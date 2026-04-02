@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import type { SourceCitation } from '@/types'
 import { SourceCards } from './source-card'
 
@@ -113,15 +114,14 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-5`}>
       {!isUser && (
-        <div style={{
-          width: '2rem', height: '2rem', borderRadius: '50%',
-          background: 'linear-gradient(135deg, #2a4a8a, #5a2a9a)',
-          border: '1px solid rgba(150,180,255,0.3)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'white', fontSize: '0.7rem', fontWeight: 700,
-          marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0
-        }}>
-          O
+        <div style={{ width: '2rem', height: '2rem', marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0 }}>
+          <Image
+            src="/crystal-ball.png"
+            alt="Oracle"
+            width={32}
+            height={32}
+            style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(140,100,255,0.5))' }}
+          />
         </div>
       )}
       <div className={`max-w-[78%] ${isUser ? '' : 'flex flex-col'}`}>
@@ -248,8 +248,8 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
 export function TypingIndicator() {
   return (
     <div className="flex justify-start mb-5">
-      <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold mr-2 mt-1 flex-shrink-0">
-        O
+      <div style={{ width: '2rem', height: '2rem', marginRight: '0.5rem', marginTop: '0.25rem', flexShrink: 0 }}>
+        <Image src="/crystal-ball.png" alt="Oracle" width={32} height={32} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(140,100,255,0.5))' }} />
       </div>
       <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
         <div className="flex gap-1 items-center h-4">
