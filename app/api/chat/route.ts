@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   let nektContext = ''
   if (isNektQuery) {
     try {
-      const nektResult = await nektQuery.execute({ question: message })
+      const nektResult = await nektQuery.execute!({ question: message })
       nektContext = `\n\n---\n\n## DADOS DA NEKT (pré-consultados para esta pergunta):\n${nektResult}\n\nUse esses dados para responder. Informe "Fonte: Nekt" na resposta.`
     } catch {
       // Se falhar, continua sem contexto Nekt
