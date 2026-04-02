@@ -189,6 +189,37 @@ Domínios e tabelas disponíveis na Nekt:
 - Implantação: "nekt_silver"."imp_kpis_gerais_monthly" — total_imoveis_ativados, churns_solicitados, churns_efetivados
 `
 
+export async function executeNektQuery(question: string): Promise<string> {
+  try {
+    const questionWithHint = addTableHint(question)
+
+    const sqlRaw = await callTool('generate_sql', { question: questionWithHint })
+    let sql: string
+    let explanation: string = ''
+
+    try {
+      const sqlData = JSON.parse(sqlRaw)
+      if (!sqlData.is_valid || sqlData.validation_status === 'failed') {
+        return `Não foi possível gerar uma query válida para: "${question}". Tente reformular a pergunta.`
+      }
+      sql = sqlData.sql
+      explanation = sqlData.explanation ?? ''
+    } catch {
+      return `Erro ao interpretar resposta da Nekt: ${sqlRaw.slice(0, 200)}`
+    }
+
+    const resultRaw = await callTool('execute_sql', { sql_query: sql })
+    const formatted = formatNektResult(resultRaw, question)
+    const explainNote = explanation ? `\n*${explanation.slice(0, 150)}*` : ''
+    return `${formatted}${explainNote}`
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      return 'Consulta Nekt excedeu 20s. Tente uma pergunta mais específica.'
+    }
+    return `Erro ao consultar Nekt: ${err instanceof Error ? err.message : 'erro desconhecido'}`
+  }
+}
+
 export const nektQuery = tool({
   description:
     'Consulta dados da Nekt (data lakehouse da Seazone) usando linguagem natural. ' +
@@ -205,39 +236,5 @@ export const nektQuery = tool({
           '"qual a performance dos analistas em março?", "quantos leads entraram essa semana?"'
       ),
   }),
-  execute: async ({ question }) => {
-    try {
-      // Add table hint to guide generate_sql to the right table
-      const questionWithHint = addTableHint(question)
-
-      // Step 1: Generate SQL from natural language
-      const sqlRaw = await callTool('generate_sql', { question: questionWithHint })
-      let sql: string
-      let explanation: string = ''
-
-      try {
-        const sqlData = JSON.parse(sqlRaw)
-        if (!sqlData.is_valid || sqlData.validation_status === 'failed') {
-          return `Não foi possível gerar uma query válida para: "${question}". Tente reformular a pergunta.`
-        }
-        sql = sqlData.sql
-        explanation = sqlData.explanation ?? ''
-      } catch {
-        return `Erro ao interpretar resposta da Nekt: ${sqlRaw.slice(0, 200)}`
-      }
-
-      // Step 2: Execute SQL
-      const resultRaw = await callTool('execute_sql', { sql_query: sql })
-      const formatted = formatNektResult(resultRaw, question)
-
-      // Include brief explanation as context
-      const explainNote = explanation ? `\n*${explanation.slice(0, 150)}*` : ''
-      return `${formatted}${explainNote}`
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return 'Consulta Nekt excedeu 20s. Tente uma pergunta mais específica.'
-      }
-      return `Erro ao consultar Nekt: ${err instanceof Error ? err.message : 'erro desconhecido'}`
-    }
-  },
+  execute: async ({ question }) => executeNektQuery(question),
 })

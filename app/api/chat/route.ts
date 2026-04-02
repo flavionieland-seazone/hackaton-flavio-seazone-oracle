@@ -5,7 +5,7 @@ import { screenInput, scanOutput } from '@/lib/privacy'
 import { CHAT_MODEL, NO_ANSWER_MARKER } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { metabaseSearchCards, metabaseRunCard, metabaseExploreSchema, metabaseRunSql } from '@/lib/metabase'
-import { nektQuery } from '@/lib/nekt'
+import { nektQuery, executeNektQuery } from '@/lib/nekt'
 import type { UIMessage } from 'ai'
 
 export async function POST(request: Request) {
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   let nektContext = ''
   if (isNektQuery) {
     try {
-      const nektResult = await nektQuery.execute!({ question: message })
+      const nektResult = await executeNektQuery(message)
       nektContext = `\n\n---\n\n## DADOS DA NEKT (pré-consultados para esta pergunta):\n${nektResult}\n\nUse esses dados para responder. Informe "Fonte: Nekt" na resposta.`
     } catch {
       // Se falhar, continua sem contexto Nekt
