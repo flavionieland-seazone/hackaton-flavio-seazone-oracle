@@ -1,14 +1,73 @@
+'use client'
+
+import { useState } from 'react'
 import type { SourceCitation } from '@/types'
 import { SourceCards } from './source-card'
+
+type Part = { type: string; [key: string]: unknown }
 
 interface MessageBubbleProps {
   role: 'user' | 'assistant'
   content: string
   sources?: SourceCitation[]
+  parts?: Part[]
 }
 
-export function MessageBubble({ role, content, sources }: MessageBubbleProps) {
+const METABASE_TOOLS = new Set([
+  'metabase_run_sql',
+  'metabase_run_card',
+  'metabase_search_cards',
+  'metabase_explore_schema',
+])
+
+const TABLE_LABELS: Record<string, string> = {
+  reservation_reservation: 'Reservation',
+  property_property: 'Property',
+  account_address: 'Address',
+  account_host: 'Host',
+  account_owner: 'Owner',
+  account_guest: 'Guest',
+  account_partner: 'Partner',
+  reservation_ota: 'OTA',
+  property_location: 'Location',
+  property_categorylocation: 'Category Location',
+  property_category: 'Category',
+  'szi.spot_buildings': 'Spot Buildings',
+  'szi.spot_building_units': 'Spot Building Units',
+  'szi.spot_building_unit_contracts': 'Spot Contracts',
+  'szi.financing_flows': 'Financing Flows',
+  'szi.financing_flow_installments': 'Financing Installments',
+}
+
+function extractTableNames(sql: string): string[] {
+  const seen = new Set<string>()
+  for (const m of sql.matchAll(/(?:FROM|JOIN)\s+([\w.]+)/gi)) {
+    const t = m[1]
+    if (!t.toLowerCase().startsWith('information_schema')) seen.add(t)
+  }
+  return [...seen]
+}
+
+export function MessageBubble({ role, content, sources, parts }: MessageBubbleProps) {
+  const [showReasoning, setShowReasoning] = useState(false)
   const isUser = role === 'user'
+
+  // Collect completed tool invocations from parts
+  const completedToolParts = (parts ?? []).filter(
+    (p) => p.type.startsWith('tool-') && p.state === 'output-available'
+  )
+  const metabaseParts = completedToolParts.filter((p) => METABASE_TOOLS.has(p.type.slice(5)))
+
+  // Extract table names from SQL queries for attribution
+  const allTableNames: string[] = []
+  for (const p of completedToolParts) {
+    if (p.type === 'tool-metabase_run_sql') {
+      const input = p.input as { sql?: string }
+      if (input?.sql) allTableNames.push(...extractTableNames(input.sql))
+    }
+  }
+  const uniqueTables = [...new Set(allTableNames)]
+  const hasMetabase = metabaseParts.length > 0
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-5`}>
@@ -34,6 +93,72 @@ export function MessageBubble({ role, content, sources }: MessageBubbleProps) {
             />
           )}
         </div>
+
+        {!isUser && hasMetabase && (
+          <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400">
+            <em>
+              Fonte: Metabase
+              {uniqueTables.length > 0 &&
+                ` — ${uniqueTables.map((t) => TABLE_LABELS[t.toLowerCase()] ?? t).join(', ')}`}
+            </em>
+            <button
+              onClick={() => setShowReasoning((v) => !v)}
+              className="flex items-center gap-0.5 hover:text-gray-600 transition-colors"
+              title={showReasoning ? 'Ocultar raciocínio' : 'Ver raciocínio'}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transition-transform duration-150 ${showReasoning ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              {showReasoning ? 'ocultar' : 'raciocínio'}
+            </button>
+          </div>
+        )}
+
+        {!isUser && showReasoning && (
+          <div className="mt-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
+            {metabaseParts.map((p, i) => {
+              const toolName = p.type.slice(5)
+              const input = p.input as Record<string, unknown>
+              return (
+                <div
+                  key={(p.toolCallId as string) ?? i}
+                  className={i > 0 ? 'mt-3 pt-3 border-t border-gray-200' : ''}
+                >
+                  {toolName === 'metabase_run_sql' && (
+                    <>
+                      <div className="text-gray-500 font-medium mb-1">SQL executado:</div>
+                      <pre className="bg-white border border-gray-200 rounded p-2 overflow-x-auto text-gray-700 whitespace-pre-wrap break-words font-mono text-[11px]">
+                        {String(input.sql ?? '').trim()}
+                      </pre>
+                    </>
+                  )}
+                  {toolName === 'metabase_run_card' && (
+                    <div className="text-gray-500">
+                      Relatório Metabase <strong>#{String(input.card_id ?? '')}</strong>
+                    </div>
+                  )}
+                  {toolName === 'metabase_search_cards' && (
+                    <div className="text-gray-500">
+                      Busca no Metabase: <em>&ldquo;{String(input.query ?? '')}&rdquo;</em>
+                    </div>
+                  )}
+                  {toolName === 'metabase_explore_schema' && (
+                    <div className="text-gray-500">
+                      Schema explorado:{' '}
+                      <strong>{String(input.table_name ?? input.schema_name ?? 'public')}</strong>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
         {!isUser && sources && sources.length > 0 && <SourceCards sources={sources} />}
       </div>
     </div>

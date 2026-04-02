@@ -103,14 +103,20 @@ export function ChatInterface() {
             </div>
           )}
 
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              role={message.role as 'user' | 'assistant'}
-              content={getMessageText(message.parts as Array<{ type: string; text?: string }>)}
-              sources={message.role === 'assistant' ? sourcesMap[message.id] : undefined}
-            />
-          ))}
+          {messages
+            .filter((message) => {
+              if (message.role !== 'assistant') return true
+              return getMessageText(message.parts as Array<{ type: string; text?: string }>).trim().length > 0
+            })
+            .map((message) => (
+              <MessageBubble
+                key={message.id}
+                role={message.role as 'user' | 'assistant'}
+                content={getMessageText(message.parts as Array<{ type: string; text?: string }>)}
+                sources={message.role === 'assistant' ? sourcesMap[message.id] : undefined}
+                parts={message.role === 'assistant' ? (message.parts as Array<{ type: string; [key: string]: unknown }>) : undefined}
+              />
+            ))}
 
           {isLoading && <TypingIndicator />}
           <div ref={bottomRef} />
