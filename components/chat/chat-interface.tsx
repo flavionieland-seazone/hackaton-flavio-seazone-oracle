@@ -1,6 +1,7 @@
 'use client'
 
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import { useEffect, useRef, useState } from 'react'
 import { ChatInput } from './chat-input'
 import { MessageBubble, TypingIndicator } from './message-bubble'
@@ -19,19 +20,23 @@ export function ChatInterface() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const pendingSourcesRef = useRef<SourceCitation[]>([])
 
-  const { messages, sendMessage, status } = useChat({
-    api: '/api/chat',
-    fetch: async (url, init) => {
-      const res = await globalThis.fetch(url, init)
-      const sourcesB64 = res.headers.get('x-sources')
-      if (sourcesB64) {
-        try {
-          pendingSourcesRef.current = JSON.parse(atob(sourcesB64))
-        } catch {}
-      }
-      return res
-    },
-  })
+  const transport = useRef(
+    new DefaultChatTransport({
+      api: '/api/chat',
+      fetch: async (url, init) => {
+        const res = await globalThis.fetch(url, init)
+        const sourcesB64 = res.headers.get('x-sources')
+        if (sourcesB64) {
+          try {
+            pendingSourcesRef.current = JSON.parse(atob(sourcesB64))
+          } catch {}
+        }
+        return res
+      },
+    })
+  ).current
+
+  const { messages, sendMessage, status } = useChat({ transport })
   const isLoading = status === 'submitted' || status === 'streaming'
 
   // Quando streaming termina, associa sources à última mensagem do assistente
