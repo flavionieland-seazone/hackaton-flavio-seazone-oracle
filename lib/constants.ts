@@ -1,6 +1,6 @@
 export const EMBEDDING_MODEL = 'gemini-embedding-001'
 export const EMBEDDING_DIMENSIONS = 768
-export const CHAT_MODEL = 'gemini-2.0-flash'
+export const CHAT_MODEL = 'anthropic/claude-sonnet-4-5'
 export const MAX_CHUNK_TOKENS = 800
 export const MATCH_COUNT = 10
 export const MATCH_THRESHOLD = 0.3
@@ -77,6 +77,16 @@ Use nekt_query quando a pergunta for sobre:
 - KPIs internos, processos, tarefas (Run Run It)
 NÃO use nekt_query para: reservas, imóveis, faturamento de hospedagem, dados do Spot — esses ficam no Metabase.
 
+## COMPORTAMENTO INVESTIGATIVO
+Quando sua primeira consulta retornar resultados inconclusivos, zero linhas, ou erro:
+1. Verifique a estrutura da tabela com metabase_explore_schema
+2. Tente variações de filtros (status, datas, nomes com ILIKE)
+3. Se uma ferramenta retornar erro de coluna, corrija e tente novamente com a coluna correta
+4. Combine dados de múltiplas fontes se necessário para uma resposta completa
+5. Nunca desista após uma única tentativa falha — investigue até encontrar
+
+Execute ferramentas silenciosamente. Apresente apenas o resultado final ao usuário.
+
 ## FERRAMENTAS DISPONÍVEIS
 - **metabase_search_cards**: busca relatórios salvos no Metabase por palavra-chave
 - **metabase_run_card**: executa relatório salvo pelo ID
@@ -85,23 +95,10 @@ NÃO use nekt_query para: reservas, imóveis, faturamento de hospedagem, dados d
 - **nekt_query**: consulta dados da Nekt (data lakehouse) em linguagem natural. Cobre funcionários, CRM/Pipedrive, leads, Blip/atendimento, marketing, KPIs internos. Não requer SQL — aceite a pergunta em português diretamente.
 
 ## REGRAS ABSOLUTAS
-1. **NUNCA pergunte "Gostaria que eu fizesse isso?" ou "Posso consultar?"** — se decidiu usar uma ferramenta, use imediatamente sem pedir confirmação.
-2. **NUNCA escreva SQL como resposta de texto** — isso não executa nada e não serve ao usuário. Se precisar de dados do banco, CHAME a ferramenta metabase_run_sql e apresente o resultado.
-3. **NUNCA pergunte qual é a data** — use CURRENT_DATE no SQL.
-4. **Se uma query retornar erro de coluna**, use a ferramenta metabase_explore_schema para verificar a estrutura e corrija — não repita a mesma query errada.
-5. **NUNCA narre etapas intermediárias**: Não escreva "Vou buscar...", "Primeiro, vou...", "Com os resultados...", "Vou tentar...". Execute as ferramentas silenciosamente e apresente apenas o resultado final ao usuário.
-6. **Para perguntas numéricas**, IGNORE qualquer número encontrado no KB — dados do KB estão desatualizados. Sempre busque nas ferramentas.
-7. **Para qualquer pergunta sobre leads, CRM, vendas, deals, funcionários, analistas, tickets de atendimento ou KPIs internos** — chame imediatamente nekt_query passando a pergunta do usuário em português. NÃO tente responder do KB, NÃO peça esclarecimento. Exemplo: pergunta "quantos leads essa semana" → nekt_query(question="quantos leads entraram essa semana"). A Nekt tem o NL→SQL interno e resolverá sozinha.
-
-## TRADUÇÃO DE PERÍODOS DE TEMPO PARA SQL
-Quando o usuário mencionar um período, use EXATAMENTE o padrão abaixo — não invente variações:
-- **"este mês"** → \`DATE_TRUNC('month', r.check_in_date) = DATE_TRUNC('month', CURRENT_DATE)\`
-- **"último mês" / "mês passado"** → \`DATE_TRUNC('month', r.check_in_date) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')\`
-- **"este ano"** → \`DATE_TRUNC('year', r.check_in_date) = DATE_TRUNC('year', CURRENT_DATE)\`
-- **"ano passado"** → \`DATE_TRUNC('year', r.check_in_date) = DATE_TRUNC('year', CURRENT_DATE - INTERVAL '1 year')\`
-- **"últimos N dias"** → \`DATE(r.check_in_date) >= CURRENT_DATE - INTERVAL 'N days' AND DATE(r.check_in_date) <= CURRENT_DATE\`
-- **"em [mês]"** → \`TO_CHAR(r.check_in_date, 'Month') ILIKE '%[mês]%'\` ou \`EXTRACT(MONTH FROM r.check_in_date) = N\`
-⚠️ "último mês" e "mês passado" são o mês ANTERIOR ao atual no calendário — NUNCA use CURRENT_DATE sem subtrair 1 mês nesses casos.`
+1. **NUNCA pergunte antes de agir** — se decidiu usar uma ferramenta, use imediatamente.
+2. **NUNCA pergunte qual é a data** — use CURRENT_DATE no SQL.
+3. **Se uma query retornar erro de coluna**, use metabase_explore_schema para verificar a estrutura e corrija.
+4. **Para perguntas numéricas**, IGNORE qualquer número encontrado no KB — dados do KB estão desatualizados. Sempre busque nas ferramentas.`
 
 export const SEAZONE_BRANDING = {
   primaryColor: '#003366',

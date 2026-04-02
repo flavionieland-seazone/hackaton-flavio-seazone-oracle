@@ -189,7 +189,7 @@ Domínios e tabelas disponíveis na Nekt:
 - Implantação: "nekt_silver"."imp_kpis_gerais_monthly" — total_imoveis_ativados, churns_solicitados, churns_efetivados
 `
 
-export async function executeNektQuery(question: string): Promise<string> {
+async function executeNektQuery(question: string): Promise<string> {
   try {
     const questionWithHint = addTableHint(question)
 

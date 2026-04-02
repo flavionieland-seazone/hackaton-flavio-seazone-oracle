@@ -38,6 +38,7 @@ export function ChatInterface() {
 
   const { messages, sendMessage, status } = useChat({ transport })
   const isLoading = status === 'submitted' || status === 'streaming'
+  const isSubmitted = status === 'submitted'
 
   // Quando streaming termina, associa sources à última mensagem do assistente
   useEffect(() => {
@@ -106,7 +107,12 @@ export function ChatInterface() {
           {messages
             .filter((message) => {
               if (message.role !== 'assistant') return true
-              return getMessageText(message.parts as Array<{ type: string; text?: string }>).trim().length > 0
+              // Show assistant messages that have text OR active tool parts (in-progress)
+              const hasText = getMessageText(message.parts as Array<{ type: string; text?: string }>).trim().length > 0
+              const hasActiveTool = (message.parts as Array<{ type: string; state?: string }> ?? []).some(
+                (p) => p.type.startsWith('tool-') && (p.state === 'input-streaming' || p.state === 'input-available')
+              )
+              return hasText || hasActiveTool
             })
             .map((message) => (
               <MessageBubble
@@ -118,7 +124,8 @@ export function ChatInterface() {
               />
             ))}
 
-          {isLoading && <TypingIndicator />}
+          {/* Bouncing dots only before first token arrives */}
+          {isSubmitted && <TypingIndicator />}
           <div ref={bottomRef} />
         </div>
       </div>

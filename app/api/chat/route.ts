@@ -1,12 +1,17 @@
 import { streamText, stepCountIs } from 'ai'
-import { google } from '@ai-sdk/google'
+import { createOpenAI } from '@ai-sdk/openai'
 import { retrieve, buildContext, buildSystemPrompt, extractSources } from '@/lib/rag'
 import { screenInput, scanOutput } from '@/lib/privacy'
 import { CHAT_MODEL, NO_ANSWER_MARKER } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { metabaseSearchCards, metabaseRunCard, metabaseExploreSchema, metabaseRunSql } from '@/lib/metabase'
-import { nektQuery, executeNektQuery } from '@/lib/nekt'
+import { nektQuery } from '@/lib/nekt'
 import type { UIMessage } from 'ai'
+
+const openrouter = createOpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY!,
+})
 
 export async function POST(request: Request) {
   const body = await request.json()
@@ -60,25 +65,10 @@ export async function POST(request: Request) {
     coreMessages = [{ role: 'user', content: message }]
   }
 
-  // Detecta perguntas que devem ir direto à Nekt e pré-busca o resultado
-  const NEKT_KEYWORDS = /\b(lead|leads|funil\s+de\s+vendas|pipeline\s+de\s+vendas|deal|deals|analistas?\s+comerciais?|multiplicador|comiss[aã]o|funcionários?\s+ativos?|colaboradores?|ticket|tickets\s+de\s+atendimento|kpi|kpis|campanha\s+google|performance\s+d[oe]s?\s+analistas?)\b/i
-  const isNektQuery = NEKT_KEYWORDS.test(message)
-
-  // Pré-busca dados da Nekt para injetar no contexto (evita loop de tool use)
-  let nektContext = ''
-  if (isNektQuery) {
-    try {
-      const nektResult = await executeNektQuery(message)
-      nektContext = `\n\n---\n\n## DADOS DA NEKT (pré-consultados para esta pergunta):\n${nektResult}\n\nUse esses dados para responder. Informe "Fonte: Nekt" na resposta.`
-    } catch {
-      // Se falhar, continua sem contexto Nekt
-    }
-  }
-
-  // Streaming com Gemini + tools
+  // Streaming com Claude Sonnet via OpenRouter + tools
   const result = streamText({
-    model: google(CHAT_MODEL),
-    system: isNektQuery ? systemPrompt + nektContext : systemPrompt,
+    model: openrouter(CHAT_MODEL),
+    system: systemPrompt,
     messages: coreMessages,
     tools: {
       metabase_search_cards: metabaseSearchCards,
@@ -88,7 +78,7 @@ export async function POST(request: Request) {
       nekt_query: nektQuery,
     },
     toolChoice: 'auto',
-    stopWhen: stepCountIs(8),
+    stopWhen: stepCountIs(20),
     onFinish: async ({ text, usage }) => {
       // Camada 2: output scanning
       const scanned = scanOutput(text)

@@ -21,6 +21,14 @@ const DATA_TOOLS = new Set([
   'nekt_query',
 ])
 
+const TOOL_PROGRESS_LABELS: Record<string, string> = {
+  metabase_run_sql: 'Executando SQL no Metabase...',
+  metabase_run_card: 'Executando relatório...',
+  metabase_search_cards: 'Buscando relatórios no Metabase...',
+  metabase_explore_schema: 'Explorando estrutura do banco...',
+  nekt_query: 'Consultando dados na Nekt...',
+}
+
 const TABLE_LABELS: Record<string, string> = {
   reservation_reservation: 'Reservation',
   property_property: 'Property',
@@ -49,12 +57,42 @@ function extractTableNames(sql: string): string[] {
   return [...seen]
 }
 
+function ToolProgressIndicator({ parts }: { parts: Part[] }) {
+  // Find tools that are running (input available but output not yet ready)
+  const activeParts = parts.filter(
+    (p) =>
+      p.type.startsWith('tool-') &&
+      (p.state === 'input-streaming' || p.state === 'input-available')
+  )
+
+  if (activeParts.length === 0) return null
+
+  const lastActive = activeParts[activeParts.length - 1]
+  const toolName = lastActive.type.slice(5)
+  const label = TOOL_PROGRESS_LABELS[toolName] ?? 'Processando...'
+
+  return (
+    <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+      <svg
+        className="w-3.5 h-3.5 animate-spin text-[#003366]"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+      </svg>
+      <span>{label}</span>
+    </div>
+  )
+}
+
 export function MessageBubble({ role, content, sources, parts }: MessageBubbleProps) {
   const [showReasoning, setShowReasoning] = useState(false)
   const isUser = role === 'user'
+  const allParts = parts ?? []
 
   // Collect completed tool invocations from parts
-  const completedToolParts = (parts ?? []).filter(
+  const completedToolParts = allParts.filter(
     (p) => p.type.startsWith('tool-') && p.state === 'output-available'
   )
   const metabaseParts = completedToolParts.filter((p) => DATA_TOOLS.has(p.type.slice(5)))
@@ -70,6 +108,8 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
   const uniqueTables = [...new Set(allTableNames)]
   const hasMetabase = metabaseParts.length > 0
 
+  const hasContent = content.trim().length > 0
+
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-5`}>
       {!isUser && (
@@ -78,23 +118,30 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
         </div>
       )}
       <div className={`max-w-[78%] ${isUser ? '' : 'flex flex-col'}`}>
-        <div
-          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-            isUser
-              ? 'bg-[#003366] text-white rounded-br-sm'
-              : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm'
-          }`}
-        >
-          {isUser ? (
-            <p className="whitespace-pre-wrap">{content}</p>
-          ) : (
-            <div
-              className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:my-1 prose-li:my-0"
-              dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }}
-            />
-          )}
-        </div>
+        {/* Message bubble — only render if there's content */}
+        {(isUser || hasContent) && (
+          <div
+            className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+              isUser
+                ? 'bg-[#003366] text-white rounded-br-sm'
+                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm'
+            }`}
+          >
+            {isUser ? (
+              <p className="whitespace-pre-wrap">{content}</p>
+            ) : (
+              <div
+                className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:my-1 prose-li:my-0"
+                dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }}
+              />
+            )}
+          </div>
+        )}
 
+        {/* Tool progress indicator (shown while tools are running) */}
+        {!isUser && <ToolProgressIndicator parts={allParts} />}
+
+        {/* Attribution + reasoning toggle (shown after tools complete) */}
         {!isUser && hasMetabase && (
           <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400">
             <em>
@@ -120,6 +167,7 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
           </div>
         )}
 
+        {/* Reasoning panel */}
         {!isUser && showReasoning && (
           <div className="mt-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
             {metabaseParts.map((p, i) => {
