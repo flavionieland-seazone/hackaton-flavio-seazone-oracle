@@ -1,4 +1,4 @@
-import { streamText, stepCountIs } from 'ai'
+import { streamText, stepCountIs, convertToModelMessages } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { retrieve, buildContext, buildSystemPrompt, extractSources } from '@/lib/rag'
 import { screenInput, scanOutput } from '@/lib/privacy'
@@ -52,20 +52,17 @@ export async function POST(request: Request) {
   const systemPrompt = buildSystemPrompt(context)
   const sources = extractSources(chunks)
 
-  // Constrói histórico de conversa para o modelo ter memória dentro da sessão
-  type CoreMsg = { role: 'user' | 'assistant'; content: string }
-  let coreMessages: CoreMsg[]
-  if (Array.isArray(body.messages) && body.messages.length > 0) {
-    coreMessages = (body.messages as UIMessage[])
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => {
-        const textPart = m.parts?.find((p: { type: string }) => p.type === 'text') as { type: 'text'; text: string } | undefined
-        return { role: m.role as 'user' | 'assistant', content: textPart?.text ?? '' }
-      })
-      .filter((m) => m.content.length > 0)
-  } else {
-    coreMessages = [{ role: 'user', content: message }]
+  // Constrói histórico de conversa incluindo tool calls/results para o modelo ter contexto completo
+  const tools = {
+    metabase_search_cards: metabaseSearchCards,
+    metabase_run_card: metabaseRunCard,
+    metabase_explore_schema: metabaseExploreSchema,
+    metabase_run_sql: metabaseRunSql,
+    nekt_query: nektQuery,
   }
+  const coreMessages = Array.isArray(body.messages) && body.messages.length > 0
+    ? await convertToModelMessages(body.messages as UIMessage[], { tools, ignoreIncompleteToolCalls: true })
+    : [{ role: 'user' as const, content: message }]
 
   // Streaming com Claude Sonnet via OpenRouter + tools
   let result
@@ -74,13 +71,7 @@ export async function POST(request: Request) {
     model: openrouterModel,
     system: systemPrompt,
     messages: coreMessages,
-    tools: {
-      metabase_search_cards: metabaseSearchCards,
-      metabase_run_card: metabaseRunCard,
-      metabase_explore_schema: metabaseExploreSchema,
-      metabase_run_sql: metabaseRunSql,
-      nekt_query: nektQuery,
-    },
+    tools,
     toolChoice: 'auto',
     stopWhen: stepCountIs(20),
     onFinish: async ({ text, usage }) => {
