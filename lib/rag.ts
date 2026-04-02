@@ -51,7 +51,17 @@ ${chunk.content}`
 }
 
 export function buildSystemPrompt(context: string): string {
+  const now = new Date()
+  const today = now.toISOString().slice(0, 10) // YYYY-MM-DD
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const lastMonth = lastMonthDate.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })
+
   return `${SYSTEM_PROMPT}
+
+---
+
+## DATA ATUAL: ${today}
+"Último mês" e "mês passado" referem-se a: **${lastMonth}** → use \`DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')\` no SQL.
 
 ---
 

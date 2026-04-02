@@ -4,7 +4,8 @@ import { retrieve, buildContext, buildSystemPrompt, extractSources } from '@/lib
 import { screenInput, scanOutput } from '@/lib/privacy'
 import { CHAT_MODEL, NO_ANSWER_MARKER } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
-import { metabaseSearchCards, metabaseRunCard, metabaseRunSql } from '@/lib/metabase'
+import { metabaseSearchCards, metabaseRunCard, metabaseExploreSchema, metabaseRunSql } from '@/lib/metabase'
+import { nektQuery } from '@/lib/nekt'
 import type { UIMessage } from 'ai'
 
 export async function POST(request: Request) {
@@ -38,28 +39,56 @@ export async function POST(request: Request) {
     convId = conv?.id
   }
 
-  // RAG: recupera chunks relevantes
+  // RAG: recupera chunks relevantes com base na última pergunta
   const chunks = await retrieve(message, filters)
   const context = buildContext(chunks)
   const systemPrompt = buildSystemPrompt(context)
   const sources = extractSources(chunks)
 
-  // Se a KB não tem resposta boa, força o uso de tools
-  const bestSimilarity = chunks.length > 0 ? Math.max(...chunks.map((c) => c.similarity)) : 0
-  const kbHasAnswer = bestSimilarity >= 0.55
+  // Constrói histórico de conversa para o modelo ter memória dentro da sessão
+  type CoreMsg = { role: 'user' | 'assistant'; content: string }
+  let coreMessages: CoreMsg[]
+  if (Array.isArray(body.messages) && body.messages.length > 0) {
+    coreMessages = (body.messages as UIMessage[])
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => {
+        const textPart = m.parts?.find((p: { type: string }) => p.type === 'text') as { type: 'text'; text: string } | undefined
+        return { role: m.role as 'user' | 'assistant', content: textPart?.text ?? '' }
+      })
+      .filter((m) => m.content.length > 0)
+  } else {
+    coreMessages = [{ role: 'user', content: message }]
+  }
 
-  // Streaming com Gemini + tools Metabase
+  // Detecta perguntas que devem ir direto à Nekt e pré-busca o resultado
+  const NEKT_KEYWORDS = /\b(lead|leads|funil\s+de\s+vendas|pipeline\s+de\s+vendas|deal|deals|analistas?\s+comerciais?|multiplicador|comiss[aã]o|funcionários?\s+ativos?|colaboradores?|ticket|tickets\s+de\s+atendimento|kpi|kpis|campanha\s+google|performance\s+d[oe]s?\s+analistas?)\b/i
+  const isNektQuery = NEKT_KEYWORDS.test(message)
+
+  // Pré-busca dados da Nekt para injetar no contexto (evita loop de tool use)
+  let nektContext = ''
+  if (isNektQuery) {
+    try {
+      const nektResult = await nektQuery.execute({ question: message })
+      nektContext = `\n\n---\n\n## DADOS DA NEKT (pré-consultados para esta pergunta):\n${nektResult}\n\nUse esses dados para responder. Informe "Fonte: Nekt" na resposta.`
+    } catch {
+      // Se falhar, continua sem contexto Nekt
+    }
+  }
+
+  // Streaming com Gemini + tools
   const result = streamText({
     model: google(CHAT_MODEL),
-    system: systemPrompt,
-    messages: [{ role: 'user', content: message }],
+    system: isNektQuery ? systemPrompt + nektContext : systemPrompt,
+    messages: coreMessages,
     tools: {
       metabase_search_cards: metabaseSearchCards,
       metabase_run_card: metabaseRunCard,
+      metabase_explore_schema: metabaseExploreSchema,
       metabase_run_sql: metabaseRunSql,
+      nekt_query: nektQuery,
     },
-    toolChoice: kbHasAnswer ? 'auto' : 'required',
-    stopWhen: stepCountIs(5),
+    toolChoice: 'auto',
+    stopWhen: stepCountIs(8),
     onFinish: async ({ text, usage }) => {
       // Camada 2: output scanning
       const scanned = scanOutput(text)

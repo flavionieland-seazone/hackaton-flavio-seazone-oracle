@@ -13,11 +13,12 @@ interface MessageBubbleProps {
   parts?: Part[]
 }
 
-const METABASE_TOOLS = new Set([
+const DATA_TOOLS = new Set([
   'metabase_run_sql',
   'metabase_run_card',
   'metabase_search_cards',
   'metabase_explore_schema',
+  'nekt_query',
 ])
 
 const TABLE_LABELS: Record<string, string> = {
@@ -56,7 +57,7 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
   const completedToolParts = (parts ?? []).filter(
     (p) => p.type.startsWith('tool-') && p.state === 'output-available'
   )
-  const metabaseParts = completedToolParts.filter((p) => METABASE_TOOLS.has(p.type.slice(5)))
+  const metabaseParts = completedToolParts.filter((p) => DATA_TOOLS.has(p.type.slice(5)))
 
   // Extract table names from SQL queries for attribution
   const allTableNames: string[] = []
@@ -97,7 +98,7 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
         {!isUser && hasMetabase && (
           <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400">
             <em>
-              Fonte: Metabase
+              {metabaseParts.some((p) => p.type === 'tool-nekt_query') ? 'Fonte: Nekt' : 'Fonte: Metabase'}
               {uniqueTables.length > 0 &&
                 ` — ${uniqueTables.map((t) => TABLE_LABELS[t.toLowerCase()] ?? t).join(', ')}`}
             </em>
@@ -151,6 +152,12 @@ export function MessageBubble({ role, content, sources, parts }: MessageBubblePr
                     <div className="text-gray-500">
                       Schema explorado:{' '}
                       <strong>{String(input.table_name ?? input.schema_name ?? 'public')}</strong>
+                    </div>
+                  )}
+                  {toolName === 'nekt_query' && (
+                    <div className="text-gray-500">
+                      Consulta Nekt:{' '}
+                      <em>&ldquo;{String(input.question ?? '')}&rdquo;</em>
                     </div>
                   )}
                 </div>
