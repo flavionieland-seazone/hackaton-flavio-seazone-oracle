@@ -1,9 +1,10 @@
-import { streamText } from 'ai'
+import { streamText, stepCountIs } from 'ai'
 import { google } from '@ai-sdk/google'
 import { retrieve, buildContext, buildSystemPrompt, extractSources } from '@/lib/rag'
 import { screenInput, scanOutput } from '@/lib/privacy'
 import { CHAT_MODEL, NO_ANSWER_MARKER } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
+import { metabaseSearchCards, metabaseRunCard, metabaseRunSql } from '@/lib/metabase'
 import type { UIMessage } from 'ai'
 
 export async function POST(request: Request) {
@@ -43,11 +44,22 @@ export async function POST(request: Request) {
   const systemPrompt = buildSystemPrompt(context)
   const sources = extractSources(chunks)
 
-  // Streaming com Gemini
+  // Se a KB não tem resposta boa, força o uso de tools
+  const bestSimilarity = chunks.length > 0 ? Math.max(...chunks.map((c) => c.similarity)) : 0
+  const kbHasAnswer = bestSimilarity >= 0.55
+
+  // Streaming com Gemini + tools Metabase
   const result = streamText({
     model: google(CHAT_MODEL),
     system: systemPrompt,
     messages: [{ role: 'user', content: message }],
+    tools: {
+      metabase_search_cards: metabaseSearchCards,
+      metabase_run_card: metabaseRunCard,
+      metabase_run_sql: metabaseRunSql,
+    },
+    toolChoice: kbHasAnswer ? 'auto' : 'required',
+    stopWhen: stepCountIs(5),
     onFinish: async ({ text, usage }) => {
       // Camada 2: output scanning
       const scanned = scanOutput(text)
