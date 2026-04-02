@@ -68,7 +68,11 @@ function markdownToHtml(md: string): string {
     .replace(/^# (.+)$/gm, '<h1 class="font-bold mt-3 mb-1">$1</h1>')
     .replace(/^\- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
     .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$2</li>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" class="text-[#003366] underline">$1</a>')
+    .replace(/\[(.+?)\]\((.+?)\)/g, (_, text, url) =>
+      url.startsWith('http://') || url.startsWith('https://')
+        ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-[#003366] underline">${text}</a>`
+        : text
+    )
     .replace(/\n{2,}/g, '</p><p class="mt-2">')
     .replace(/\n/g, '<br/>')
 }

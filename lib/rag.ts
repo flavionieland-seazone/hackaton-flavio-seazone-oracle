@@ -42,8 +42,7 @@ export function buildContext(chunks: OracleChunkResult[]): string {
     .slice(0, 6)
     .map(
       (chunk, i) => `### Fonte ${i + 1}: ${chunk.title}
-Arquivo: ${chunk.file_path}
-Confiança: ${chunk.confianca}${chunk.fonte_url ? `\nURL: ${chunk.fonte_url}` : ''}
+Confiança: ${chunk.confianca}${chunk.fonte_url ? `\nURL externa: ${chunk.fonte_url}` : '\n(sem URL externa — não inventar link)'}
 Relevância: ${(chunk.similarity * 100).toFixed(0)}%
 
 ${chunk.content}`
