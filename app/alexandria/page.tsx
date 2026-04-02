@@ -20,7 +20,7 @@ interface ErrorItem {
   error: string
 }
 
-const TOTH_GREETING = 'Saudações, guardião do saber. Sou Toth, escriba dos deuses e guardião da sabedoria ancestral. Entrega-me teus escritos — documentos, comunicados, procedimentos — e eu os organizo e preservo nos salões eternos desta biblioteca.'
+const TOTH_GREETING = 'Saudações. Sou Toth, escriba dos deuses e guardião da sabedoria ancestral. Entrega-me teus escritos.'
 
 export default function AlexandriaPage() {
   const [mode, setMode] = useState<Mode>('file')
@@ -129,11 +129,11 @@ export default function AlexandriaPage() {
             {/* Toth avatar */}
             <div style={{ flexShrink: 0 }}>
               <div style={{
-                width: '90px', height: '90px', borderRadius: '50%', overflow: 'hidden',
+                width: '110px', height: '110px', borderRadius: '0.75rem', overflow: 'hidden',
                 border: '2px solid rgba(200,150,0,0.5)',
                 boxShadow: '0 0 20px rgba(200,130,0,0.25), 0 0 40px rgba(200,130,0,0.1)',
               }}>
-                <Image src="/toth.jpg" alt="Toth" width={90} height={90} style={{ objectFit: 'cover', objectPosition: 'top' }} />
+                <Image src="/toth.jpg" alt="Toth" width={110} height={110} style={{ objectFit: 'cover', objectPosition: 'top', width: '100%', height: '100%' }} />
               </div>
               <p style={{ textAlign: 'center', fontSize: '0.65rem', color: 'rgba(200,160,0,0.6)', marginTop: '0.375rem', letterSpacing: '0.05em' }}>TOTH</p>
             </div>
@@ -160,9 +160,19 @@ export default function AlexandriaPage() {
                   color: 'rgba(245,220,160,0.85)',
                   lineHeight: 1.6,
                   fontStyle: 'italic',
+                  marginBottom: '0.625rem',
                 }}>
                   &ldquo;{TOTH_GREETING}&rdquo;
                 </p>
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: 'rgba(200,170,100,0.7)',
+                  lineHeight: 1.6,
+                  borderTop: '1px solid rgba(200,150,0,0.2)',
+                  paddingTop: '0.625rem',
+                }}>
+                  <strong style={{ color: 'rgba(220,180,80,0.85)', fontWeight: 600 }}>Como funciona:</strong> envie arquivos (PDF, DOCX, imagens) ou cole texto diretamente. O agente Toth analisa, categoriza e indexa o conteúdo automaticamente. Tudo armazenado aqui fica salvo no banco de conhecimento e fica disponível para o Oracle responder perguntas.
+                </div>
               </div>
             </div>
           </div>
