@@ -14,6 +14,7 @@
     "@ai-sdk/react": "^3.0.144",
     "@slack/web-api": "^7.15.0",
     "@supabase/supabase-js": "^2.101.1",
+    "@types/pdf-parse": "^1.1.5",
     "@vercel/functions": "^3.4.3",
     "adm-zip": "^0.5.17",
     "ai": "^6.0.142",
@@ -21,9 +22,12 @@
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.7.0",
+    "mammoth": "^1.12.0",
     "next": "16.2.2",
+    "pdf-parse": "^1.1.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "tesseract.js": "^7.0.0",
     "tsx": "^4.21.0"
   },
   "devDependencies": {
