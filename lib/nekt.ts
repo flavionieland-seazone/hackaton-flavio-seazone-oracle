@@ -109,10 +109,10 @@ function formatNektResult(json: string, question: string): string {
 const TABLE_HINTS: Array<{ pattern: RegExp; hint: string }> = [
   {
     pattern: /\b(funcionários?\s+ativos?|headcount|colaboradores?\s+ativos?|quantos\s+funcionários?|total\s+de\s+funcionários?)\b/i,
-    hint: 'Use a tabela "nekt_silver"."convenia_employee_details_scd2_normalizado" com filtro WHERE status = \'active\' AND _deleted = false AND _available_until IS NULL para funcionários ativos no momento atual.',
+    hint: 'Use a tabela "nekt_trusted"."funcionario_com_beneficio_convenia" — já contém apenas funcionários ativos, não precisa de filtro de status.',
   },
   {
-    pattern: /\b(histórico\s+de\s+colaborad|carreira|nível|plano\s+de\s+carreira|salário|remuner)\b/i,
+    pattern: /\b(histórico\s+de\s+colaborad|carreira|nível|plano\s+de\s+carreira|remuner)\b/i,
     hint: 'Use a tabela "nekt_silver"."people_colaboradores" que contém histórico de colaboradores com dados de carreira, hierarquia e remuneração.',
   },
   {
@@ -164,7 +164,7 @@ const NEKT_SCHEMA = `
 Domínios e tabelas disponíveis na Nekt:
 
 **RH / People**
-- Headcount atual: "nekt_silver"."convenia_employee_details_scd2_normalizado" — status='active', _deleted=false, _available_until IS NULL
+- Headcount atual: "nekt_trusted"."funcionario_com_beneficio_convenia" — já pré-filtrado para ativos, sem necessidade de filtro adicional
 - Histórico colaboradores: "nekt_silver"."people_colaboradores" — carreira, hierarquia, salário, tipo_contrato, data_admissao
 - Comissão/pontos: "nekt_silver"."comissionamento_pontos_indicacoes" — total_pontos, ganho por vertical, por mês
 - Turnover: "nekt_gold"."people_kpis_turnover_churn"
