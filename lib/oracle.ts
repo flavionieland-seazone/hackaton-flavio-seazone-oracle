@@ -99,21 +99,15 @@ export async function runOracle(input: OracleInput): Promise<OracleStreamResult>
   const sources = extractSources(chunks)
 
   // Build message array for the model
-  type CoreMsg = { role: 'user' | 'assistant'; content: string }
-  let coreMessages: CoreMsg[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let coreMessages: any[]
 
   if (uiMessages && uiMessages.length > 0) {
-    // Web: convert UIMessages preserving tool call/result history
-    coreMessages = (await convertToModelMessages(uiMessages, {
+    // Web: convert UIMessages preserving tool call/result pairs (content may be array of parts)
+    coreMessages = await convertToModelMessages(uiMessages, {
       tools: oracleTools,
       ignoreIncompleteToolCalls: true,
-    }))
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: typeof m.content === 'string' ? m.content : '',
-      }))
-      .filter((m) => m.content.length > 0)
+    })
   } else if (simpleHistory && simpleHistory.length > 0) {
     // Slack: plain history from DB + new message
     coreMessages = [...simpleHistory, { role: 'user' as const, content: message }]
