@@ -2,7 +2,7 @@ import { streamText, stepCountIs, convertToModelMessages } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { retrieve, buildContext, buildSystemPrompt, extractSources } from '@/lib/rag'
 import { screenInput, scanOutput } from '@/lib/privacy'
-import { CHAT_MODEL, NO_ANSWER_MARKER } from '@/lib/constants'
+import { CHAT_MODEL } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { metabaseSearchCards, metabaseRunCard, metabaseExploreSchema, metabaseRunSql } from '@/lib/metabase'
 import { nektQuery } from '@/lib/nekt'
@@ -125,9 +125,7 @@ export async function runOracle(input: OracleInput): Promise<OracleStreamResult>
     onFinish: async ({ text, usage }) => {
       // Layer 2: output scanning
       const scanned = scanOutput(text)
-      const finalContent = scanned !== text ? scanned : text
-      const hadNoAnswer = text.includes(NO_ANSWER_MARKER)
-      const cleanContent = finalContent.replace(NO_ANSWER_MARKER, '').trim()
+      const cleanContent = (scanned !== text ? scanned : text).trim()
 
       if (convId) {
         const { data: userMsg } = await supabase
@@ -146,13 +144,6 @@ export async function runOracle(input: OracleInput): Promise<OracleStreamResult>
           tokens_output: usage?.outputTokens,
         })
 
-        if (hadNoAnswer && userMsg) {
-          await supabase.from('oracle_pending_questions').insert({
-            question: message,
-            conversation_id: convId,
-            source,
-          })
-        }
       }
     },
   })

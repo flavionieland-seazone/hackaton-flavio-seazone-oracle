@@ -9,92 +9,39 @@ const _openrouter = createOpenAI({
 const tothModel = _openrouter.chat(CHAT_MODEL)
 
 const SECTIONS = [
-  { id: '01-institucional', desc: 'Missão, valores, história, cultura, ESG, políticas internas' },
+  { id: '01-institucional', desc: 'Missão, valores, história, cultura, ESG, políticas internas, comunicados gerais' },
   { id: '02-unidades-de-negocio', desc: 'Gestão Completa, Spot, SZI, descrição de serviços e modelos de negócio' },
   { id: '03-empreendimentos', desc: 'Empreendimentos específicos, condomínios, obras, lançamentos' },
   { id: '04-comercial', desc: 'Processos de venda, onboarding de proprietário, contratos de gestão, captação' },
   { id: '05-contratos', desc: 'Modelos de contrato, termos, SLA, aditivos, rescisões' },
   { id: '06-operacao', desc: 'Operações de hospedagem, check-in/out, limpeza, manutenção, OTAs' },
-  { id: '07-organizacao', desc: 'Estrutura organizacional, times, cargos, processos internos, RH' },
+  { id: '07-organizacao', desc: 'Estrutura organizacional, times, cargos, processos internos, RH, benefícios' },
   { id: '08-tech', desc: 'Sistemas internos, integrações, APIs, ferramentas de tecnologia' },
   { id: '09-marketing', desc: 'Campanhas, identidade visual, redes sociais, posicionamento de marca' },
   { id: '10-dados-mercado', desc: 'Dados de mercado, pesquisas, benchmarks, análises externas' },
 ]
 
-const TOTH_PROMPT = `Você é o Toth, agente de curadoria de conhecimento da Seazone. Seu trabalho é transformar conteúdo bruto em documentos estruturados compatíveis com a base de conhecimento do Oracle.
+// Prompt that returns ONLY metadata — body is kept separate to avoid JSON escaping issues
+const TOTH_META_PROMPT = `Você é o Toth, agente de curadoria de conhecimento da Seazone. Analise o conteúdo fornecido e retorne APENAS um JSON com os metadados do documento.
 
 ## SEÇÕES DISPONÍVEIS
 ${SECTIONS.map((s) => `- **${s.id}**: ${s.desc}`).join('\n')}
 
-## CAMPOS DO FRONTMATTER
-Obrigatórios:
-- title: título descritivo em português (string)
-- type: "referencia" | "processo" | "faq" | "politica" | "manual"
-- bu: "gestao-completa" | "spot" | "szi" | "corporativo" | "tech" | "marketing" | "comercial"
-- status: "ativo"
-
-Opcionais recomendados:
-- tags: lista de palavras-chave relevantes
-- confianca: "alta" | "media" | "baixa" — use "media" para conteúdo importado sem validação
-- fonte: "upload-alexandria"
-
-## EXEMPLOS DE DOCUMENTOS FORMATADOS
-
-Exemplo 1:
-\`\`\`
----
-title: "Política de cancelamento de reservas"
-type: politica
-bu: gestao-completa
-status: ativo
-tags: [cancelamento, reservas, hospedagem]
-confianca: media
-fonte: upload-alexandria
----
-
-# Política de Cancelamento de Reservas
-
-## Prazo de Cancelamento
-...
-
-## Reembolso
-...
-\`\`\`
-
-Exemplo 2:
-\`\`\`
----
-title: "Processo de onboarding de proprietário"
-type: processo
-bu: comercial
-status: ativo
-tags: [onboarding, proprietário, captação]
-confianca: media
-fonte: upload-alexandria
----
-
-# Processo de Onboarding de Proprietário
-
-## Etapa 1 — Visita comercial
-...
-\`\`\`
-
-## TAREFA
-Analise o conteúdo abaixo e retorne um JSON válido (sem markdown code blocks) com esta estrutura exata:
+## RETORNE EXATAMENTE ESTE JSON (sem markdown fences, sem texto extra):
 {
-  "markdown": "<documento .md completo com frontmatter YAML>",
+  "title": "<título descritivo em português>",
   "section": "<id da seção>",
-  "slug": "<slug kebab-case com max 60 chars para nome do arquivo>",
-  "title": "<título do documento>"
+  "slug": "<slug kebab-case max 60 chars, só letras minúsculas sem acentos, números e hífens>",
+  "type": "referencia | processo | faq | politica | manual",
+  "bu": "gestao-completa | spot | szi | corporativo | tech | marketing | comercial",
+  "tags": ["tag1", "tag2", "tag3"]
 }
 
 Regras:
-1. O campo "markdown" deve conter o documento .md inteiro: frontmatter delimitado por --- no início e no fim, seguido do body organizado em headings hierárquicos
-2. Use type: "referencia" como default se não souber o tipo exato
-3. Use confianca: "media" para todo conteúdo importado via upload
-4. Use fonte: "upload-alexandria"
-5. Organize o body em Markdown limpo — remova artefatos de extração (espaços duplos, quebras de linha excessivas)
-6. O slug deve ser kebab-case, apenas letras minúsculas sem acentos, números e hífens`
+- type: use "referencia" como default
+- bu: escolha o mais adequado ao conteúdo; use "corporativo" para comunicados gerais
+- tags: 3-5 palavras-chave relevantes
+- Retorne SOMENTE o JSON, nada mais`
 
 export async function processWithToth(input: {
   rawText: string
@@ -107,25 +54,48 @@ export async function processWithToth(input: {
   title: string
 }> {
   const userContent = [
-    input.userNotes ? `**Notas do usuário:** ${input.userNotes}\n\n` : '',
-    `**Arquivo:** ${input.fileName}\n\n`,
-    `**Conteúdo extraído:**\n${input.rawText.slice(0, 12000)}`,
+    input.userNotes ? `Contexto: ${input.userNotes}\n\n` : '',
+    `Arquivo: ${input.fileName}\n\n`,
+    `Conteúdo:\n${input.rawText.slice(0, 12000)}`,
   ].join('')
 
   const { text } = await generateText({
     model: tothModel,
-    system: TOTH_PROMPT,
+    system: TOTH_META_PROMPT,
     prompt: userContent,
   })
 
-  // Parse JSON — strip potential markdown code fences if model adds them
-  const cleaned = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
-  const parsed = JSON.parse(cleaned)
+  // Extract JSON — find outermost { }
+  let cleaned = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
+  const start = cleaned.indexOf('{')
+  const end = cleaned.lastIndexOf('}')
+  if (start !== -1 && end !== -1) cleaned = cleaned.slice(start, end + 1)
+  const meta = JSON.parse(cleaned)
 
-  return {
-    markdown: parsed.markdown as string,
-    section: parsed.section as string,
-    slug: (parsed.slug as string).replace(/[^a-z0-9-]/g, '').slice(0, 60),
-    title: parsed.title as string,
-  }
+  const title = meta.title as string
+  const section = meta.section as string
+  const slug = (meta.slug as string).replace(/[^a-z0-9-]/g, '').slice(0, 60)
+  const type = meta.type ?? 'referencia'
+  const bu = meta.bu ?? 'corporativo'
+  const tags = Array.isArray(meta.tags) ? meta.tags.join(', ') : ''
+
+  // Build the complete markdown ourselves — body is the raw text, cleaned up
+  const body = input.rawText.slice(0, 12000).replace(/\n{3,}/g, '\n\n').trim()
+
+  const markdown = `---
+title: "${title.replace(/"/g, "'")}"
+type: ${type}
+bu: ${bu}
+status: ativo
+tags: [${tags}]
+confianca: media
+fonte: ${input.userNotes?.includes('slack') ? 'slack-digest' : 'upload-alexandria'}
+---
+
+# ${title}
+
+${body}
+`
+
+  return { markdown, section, slug, title }
 }
