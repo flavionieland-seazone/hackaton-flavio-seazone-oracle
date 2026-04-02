@@ -1,34 +1,68 @@
 export function Header() {
   return (
-    <header className="bg-[#003366] text-white px-6 py-4 flex items-center justify-between shadow-lg">
-      <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-        <div className="w-9 h-9 rounded-full bg-[#00aaff] flex items-center justify-center font-bold text-white text-lg select-none flex-shrink-0">
+    <header style={{
+      background: 'rgba(8,11,26,0.85)',
+      backdropFilter: 'blur(12px)',
+      borderBottom: '1px solid rgba(150,180,255,0.1)',
+      padding: '0.875rem 1.5rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      position: 'relative',
+      zIndex: 20
+    }}>
+      <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', opacity: 1 }}>
+        <div style={{
+          width: '2rem', height: '2rem', borderRadius: '50%',
+          background: 'linear-gradient(135deg, #2a4a8a, #5a2a9a)',
+          border: '1px solid rgba(150,180,255,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 700, color: 'white', fontSize: '0.9rem',
+          flexShrink: 0,
+          boxShadow: '0 0 10px rgba(100,140,255,0.3)'
+        }}>
           O
         </div>
         <div>
-          <h1 className="text-lg font-semibold leading-tight">Seazone Oracle</h1>
-          <p className="text-xs text-blue-200 leading-tight">Assistente de conhecimento interno</p>
+          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'white', lineHeight: 1.2 }}>Seazone Oracle</div>
+          <div style={{ fontSize: '0.65rem', color: 'rgba(160,190,255,0.6)', lineHeight: 1.2 }}>Assistente de conhecimento interno</div>
         </div>
       </a>
-      <nav className="flex items-center gap-1">
-        <a
-          href="/"
-          className="text-xs text-white/50 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
-        >
-          Home
-        </a>
-        <a
-          href="/chat"
-          className="text-xs text-white/50 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
-        >
-          Perguntas
-        </a>
-        <a
-          href="/alexandria"
-          className="text-xs text-white/50 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
-        >
-          Biblioteca
-        </a>
+
+      <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        {[
+          { label: 'Home', href: '/' },
+          { label: 'Perguntas', href: '/chat' },
+          { label: 'Biblioteca', href: '/alexandria' },
+        ].map(({ label, href }) => (
+          <a
+            key={href}
+            href={href}
+            style={{
+              fontSize: '0.75rem',
+              color: 'rgba(180,200,255,0.6)',
+              padding: '0.375rem 0.75rem',
+              borderRadius: '0.5rem',
+              textDecoration: 'none',
+              transition: 'all 0.15s',
+              border: '1px solid transparent'
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLAnchorElement
+              el.style.color = 'white'
+              el.style.background = 'rgba(255,255,255,0.07)'
+              el.style.borderColor = 'rgba(150,180,255,0.2)'
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLAnchorElement
+              el.style.color = 'rgba(180,200,255,0.6)'
+              el.style.background = 'transparent'
+              el.style.borderColor = 'transparent'
+            }}
+          >
+            {label}
+          </a>
+        ))}
       </nav>
     </header>
   )

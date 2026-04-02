@@ -2,53 +2,45 @@
 
 import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 
 const ALL_QUESTIONS = [
-  // Institucional
   'Qual é a missão e os valores da Seazone?',
   'Quando a Seazone foi fundada e qual é sua história?',
   'O que diferencia a Seazone de outras empresas do setor?',
   'Quais são os princípios de ESG da Seazone?',
-  // Produtos e serviços
   'Como funciona a Gestão Completa da Seazone?',
   'O que é o Spot da Seazone e como funciona?',
   'Quais são os modelos de contrato disponíveis para proprietários?',
   'Quais taxas e comissões a Seazone cobra dos proprietários?',
-  // Comercial e onboarding
   'Como funciona o processo de onboarding de um novo imóvel?',
   'Quais são os critérios para aceitar um imóvel na Seazone?',
   'Como é feita a precificação dinâmica dos imóveis?',
   'Quais plataformas (OTAs) a Seazone utiliza para distribuição?',
-  // Operação
   'Como funciona o processo de check-in e check-out?',
   'Qual é a política de cancelamento de reservas?',
   'Como funciona o processo de limpeza dos imóveis?',
   'O que acontece quando há danos ao imóvel?',
   'Como funciona o atendimento ao hóspede?',
-  // Organização e RH
   'Quantos funcionários ativos a Seazone tem hoje?',
   'Como é a estrutura organizacional da Seazone?',
   'Quais são os benefícios oferecidos aos colaboradores?',
   'Como funciona o processo de avaliação de desempenho?',
-  // Tech
   'Quais sistemas internos a Seazone utiliza?',
   'Como funciona a integração com as OTAs?',
-  // Dados e métricas
   'Quantas reservas foram feitas esse mês?',
   'Qual imóvel mais faturou nos últimos 30 dias?',
   'Quantos leads entraram essa semana?',
   'Qual a taxa de ocupação média dos imóveis?',
-  // Marketing
   'Como é o posicionamento de marca da Seazone?',
   'Quais são as principais campanhas de marketing da Seazone?',
-  // Comunicados recentes
   'O que foi comunicado internamente sobre feriados recentes?',
   'O que a Seazone comunicou sobre uso de IA internamente?',
   'Quais foram os comunicados mais recentes do time?',
-  // Empreendimentos
   'Quais são os empreendimentos Spot ativos da Seazone?',
   'Como funciona o modelo de investimento no Spot?',
+  'Qual o prazo de entrega dos empreendimentos em andamento?',
 ]
 
 function shuffle<T>(arr: T[]): T[] {
@@ -69,34 +61,100 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex flex-col min-h-full" style={{ background: '#080b1a' }}>
       <Header />
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 bg-gray-50">
+
+      {/* Fundo estrelado */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{ background: 'radial-gradient(ellipse at 60% 40%, #1a0a3a 0%, #080b1a 60%)' }}>
+        {/* Estrelas simuladas com box-shadows */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `
+            radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+            radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 40% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
+            radial-gradient(1px 1px at 55% 55%, rgba(255,255,255,0.5) 0%, transparent 100%),
+            radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 80% 70%, rgba(255,255,255,0.8) 0%, transparent 100%),
+            radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.6) 0%, transparent 100%),
+            radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.5) 0%, transparent 100%),
+            radial-gradient(1px 1px at 35% 85%, rgba(255,255,255,0.7) 0%, transparent 100%),
+            radial-gradient(2px 2px at 60% 80%, rgba(180,160,255,0.6) 0%, transparent 100%),
+            radial-gradient(1px 1px at 75% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 85% 15%, rgba(255,255,255,0.9) 0%, transparent 100%),
+            radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.6) 0%, transparent 100%),
+            radial-gradient(1px 1px at 45% 65%, rgba(200,180,255,0.5) 0%, transparent 100%),
+            radial-gradient(2px 2px at 20% 5%, rgba(255,255,255,0.8) 0%, transparent 100%)
+          `
+        }} />
+        {/* Nebulosa roxa */}
+        <div style={{
+          position: 'absolute', top: '10%', right: '5%', width: '300px', height: '300px',
+          background: 'radial-gradient(ellipse, rgba(120,40,180,0.15) 0%, transparent 70%)',
+          borderRadius: '50%', filter: 'blur(40px)'
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '20%', left: '5%', width: '200px', height: '200px',
+          background: 'radial-gradient(ellipse, rgba(40,80,200,0.12) 0%, transparent 70%)',
+          borderRadius: '50%', filter: 'blur(30px)'
+        }} />
+      </div>
+
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12">
         <div className="max-w-2xl w-full mx-auto text-center space-y-8">
 
-          {/* Hero */}
-          <div className="space-y-4">
-            <div className="w-20 h-20 rounded-full bg-[#003366] flex items-center justify-center text-white text-3xl font-bold mx-auto shadow-lg">
-              O
+          {/* Logo */}
+          <div className="flex flex-col items-center gap-6">
+            <div style={{
+              filter: 'drop-shadow(0 0 30px rgba(100,140,255,0.5)) drop-shadow(0 0 60px rgba(120,60,200,0.3))'
+            }}>
+              <Image
+                src="/oracle-logo.jpg"
+                alt="Seazone Oracle"
+                width={220}
+                height={220}
+                className="rounded-2xl"
+                priority
+              />
             </div>
-            <h1 className="text-3xl font-bold text-[#003366]">Seazone Oracle</h1>
-            <p className="text-gray-500 text-base max-w-md mx-auto leading-relaxed">
-              Seu assistente de conhecimento interno. Pergunte sobre processos, políticas,
-              dados de hospedagem, equipe e muito mais.
-            </p>
+            <div>
+              <h1 style={{
+                fontSize: '2rem', fontWeight: 700, letterSpacing: '0.05em',
+                background: 'linear-gradient(135deg, #a0c4ff 0%, #c8a8ff 50%, #ffffff 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                SEAZONE ORACLE
+              </h1>
+              <p style={{ color: 'rgba(180,200,255,0.7)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                Seu assistente de conhecimento interno
+              </p>
+            </div>
           </div>
 
           {/* CTA */}
           <a
             href="/chat"
-            className="inline-block bg-[#003366] hover:bg-[#004488] text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm shadow"
+            style={{
+              display: 'inline-block',
+              background: 'linear-gradient(135deg, #2a4a8a 0%, #5a2a9a 100%)',
+              border: '1px solid rgba(150,180,255,0.3)',
+              color: 'white',
+              fontWeight: 600,
+              padding: '0.75rem 2.5rem',
+              borderRadius: '0.75rem',
+              fontSize: '0.875rem',
+              boxShadow: '0 0 20px rgba(100,140,255,0.2)',
+              transition: 'all 0.2s',
+              textDecoration: 'none'
+            }}
           >
-            Fazer uma pergunta
+            ✦ Fazer uma pergunta
           </a>
 
           {/* Perguntas sugeridas */}
           <div className="space-y-3">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            <p style={{ color: 'rgba(160,180,255,0.5)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
               Experimente perguntar
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -104,7 +162,29 @@ export default function HomePage() {
                 <button
                   key={q}
                   onClick={() => handleQuestion(q)}
-                  className="text-left text-sm bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 hover:border-[#003366] hover:text-[#003366] transition-colors shadow-sm leading-snug"
+                  style={{
+                    textAlign: 'left',
+                    fontSize: '0.8rem',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(150,180,255,0.15)',
+                    borderRadius: '0.75rem',
+                    padding: '0.875rem 1rem',
+                    color: 'rgba(200,220,255,0.85)',
+                    lineHeight: '1.4',
+                    transition: 'all 0.2s',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(8px)'
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(100,140,255,0.1)'
+                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(150,180,255,0.4)'
+                    ;(e.currentTarget as HTMLButtonElement).style.color = '#ffffff'
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)'
+                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(150,180,255,0.15)'
+                    ;(e.currentTarget as HTMLButtonElement).style.color = 'rgba(200,220,255,0.85)'
+                  }}
                 >
                   {q}
                 </button>
