@@ -122,7 +122,7 @@ export async function runOracle(input: OracleInput): Promise<OracleStreamResult>
     messages: coreMessages,
     tools: oracleTools,
     toolChoice: 'auto',
-    maxOutputTokens: 1500,
+    maxOutputTokens: 800,
     stopWhen: stepCountIs(20),
     onFinish: async ({ text, usage }) => {
       // Layer 2: output scanning
