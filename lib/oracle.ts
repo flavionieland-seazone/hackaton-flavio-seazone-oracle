@@ -9,6 +9,7 @@ import { nektQuery } from '@/lib/nekt'
 import type { SourceCitation } from '@/types'
 import type { UIMessage } from 'ai'
 
+
 const _openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY!,
@@ -121,6 +122,7 @@ export async function runOracle(input: OracleInput): Promise<OracleStreamResult>
     messages: coreMessages,
     tools: oracleTools,
     toolChoice: 'auto',
+    maxOutputTokens: 1500,
     stopWhen: stepCountIs(20),
     onFinish: async ({ text, usage }) => {
       // Layer 2: output scanning
