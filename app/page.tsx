@@ -64,39 +64,34 @@ export default function HomePage() {
     <div className="flex flex-col min-h-full" style={{ background: '#080b1a' }}>
       <Header />
 
-      {/* Fundo estrelado */}
-      <div className="fixed inset-0 pointer-events-none z-0" style={{ background: 'radial-gradient(ellipse at 60% 40%, #1a0a3a 0%, #080b1a 60%)' }}>
-        {/* Estrelas simuladas com box-shadows */}
+      {/* Wallpaper com zoom suave */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/wallpaper.avif"
+          alt=""
+          className="bg-wallpaper"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            transformOrigin: 'center center',
+          }}
+        />
+        {/* Overlay escuro para legibilidade + transição suave com o conteúdo */}
         <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `
-            radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
-            radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
-            radial-gradient(1.5px 1.5px at 40% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
-            radial-gradient(1px 1px at 55% 55%, rgba(255,255,255,0.5) 0%, transparent 100%),
-            radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
-            radial-gradient(1.5px 1.5px at 80% 70%, rgba(255,255,255,0.8) 0%, transparent 100%),
-            radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.6) 0%, transparent 100%),
-            radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.5) 0%, transparent 100%),
-            radial-gradient(1px 1px at 35% 85%, rgba(255,255,255,0.7) 0%, transparent 100%),
-            radial-gradient(2px 2px at 60% 80%, rgba(180,160,255,0.6) 0%, transparent 100%),
-            radial-gradient(1px 1px at 75% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
-            radial-gradient(1.5px 1.5px at 85% 15%, rgba(255,255,255,0.9) 0%, transparent 100%),
-            radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.6) 0%, transparent 100%),
-            radial-gradient(1px 1px at 45% 65%, rgba(200,180,255,0.5) 0%, transparent 100%),
-            radial-gradient(2px 2px at 20% 5%, rgba(255,255,255,0.8) 0%, transparent 100%)
-          `
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to bottom, rgba(8,11,26,0.45) 0%, rgba(8,11,26,0.55) 40%, rgba(8,11,26,0.75) 70%, rgba(8,11,26,0.95) 100%)',
         }} />
-        {/* Nebulosa roxa */}
+        {/* Vinheta radial central para destacar a logo */}
         <div style={{
-          position: 'absolute', top: '10%', right: '5%', width: '300px', height: '300px',
-          background: 'radial-gradient(ellipse, rgba(120,40,180,0.15) 0%, transparent 70%)',
-          borderRadius: '50%', filter: 'blur(40px)'
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '20%', left: '5%', width: '200px', height: '200px',
-          background: 'radial-gradient(ellipse, rgba(40,80,200,0.12) 0%, transparent 70%)',
-          borderRadius: '50%', filter: 'blur(30px)'
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(ellipse 60% 55% at 50% 42%, transparent 0%, rgba(8,11,26,0.5) 100%)',
         }} />
       </div>
 
