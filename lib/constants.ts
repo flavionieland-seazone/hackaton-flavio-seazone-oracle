@@ -1,6 +1,6 @@
 export const EMBEDDING_MODEL = 'gemini-embedding-001'
 export const EMBEDDING_DIMENSIONS = 768
-export const CHAT_MODEL = 'anthropic/claude-haiku-4-5-20251001'
+export const CHAT_MODEL = 'claude-haiku'
 export const MAX_CHUNK_TOKENS = 800
 export const MATCH_COUNT = 10
 export const MATCH_THRESHOLD = 0.3

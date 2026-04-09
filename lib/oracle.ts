@@ -11,10 +11,10 @@ import type { UIMessage } from 'ai'
 
 
 const _openrouter = createOpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
+  baseURL: 'https://hub.seazone.dev/v1',
   apiKey: process.env.OPENROUTER_API_KEY!,
 })
-// Use .chat() explicitly — OpenRouter only supports /v1/chat/completions, not the Responses API
+// Use .chat() explicitly — hub.seazone.dev only supports /v1/chat/completions
 const openrouterModel = _openrouter.chat(CHAT_MODEL)
 
 export const oracleTools = {
